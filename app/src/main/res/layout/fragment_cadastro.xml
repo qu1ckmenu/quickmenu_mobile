@@ -21,7 +21,7 @@
             android:id="@+id/tvQuickMenuTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Quick Menu"
+            android:text="Quick MeMenu"
             android:textColor="#F5B400"
             android:textSize="35sp"
             android:textStyle="bold"
