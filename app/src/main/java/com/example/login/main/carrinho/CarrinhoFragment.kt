@@ -7,6 +7,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.login.databinding.FragmentCarrinhoBinding
 import java.util.Locale
@@ -15,8 +18,6 @@ import java.util.Locale
 interface CarrinhoActionsListener {
     fun onRemoverItem(position: Int)
 }
-
-
 
 class CarrinhoFragment : Fragment(), CarrinhoActionsListener {
 
@@ -51,8 +52,6 @@ class CarrinhoFragment : Fragment(), CarrinhoActionsListener {
         binding.rvCarrinhoItens.adapter = carrinhoAdapter
 
         // 4. Lógica de clique de adição (na Activity)
-
-
         binding.btnAddItemTeste.setOnClickListener {
             val novoItem = ItemCarrinho(
                 id = "ID_${System.currentTimeMillis()}",
@@ -66,6 +65,21 @@ class CarrinhoFragment : Fragment(), CarrinhoActionsListener {
 
             // NOTIFICA A ACTIVITY SOBRE A MUDANÇA
             onTotalChanged(calcularTotal(), listaItens.size)
+
+            // 1. Encontra a Toolbar dentro do layout deste Fragment
+            val toolbar = binding.toolbar // **VERIFIQUE O ID DA SUA TOOLBAR NO XML DO CARRINHO**
+
+            // 2. Define a Toolbar do Fragment como a ActionBar da Activity
+            (activity as AppCompatActivity).setSupportActionBar(toolbar)
+
+            // 3. Vincula a Toolbar ao NavController do Fragment
+            // Isso faz com que:
+            // a) O título (label) do nav_graph seja exibido.
+            // b) O botão de voltar (seta) apareça.
+            // c) O clique no botão de voltar navegue para trás (popBackStack).
+            val navController = findNavController()
+            toolbar.setupWithNavController(navController)
+            (activity as AppCompatActivity).supportInvalidateOptionsMenu()
         }
 
         // CÁLCULO INICIAL: Envia o total na primeira vez que o Fragment é carregado
@@ -100,6 +114,7 @@ class CarrinhoFragment : Fragment(), CarrinhoActionsListener {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        (activity as? AppCompatActivity)?.setSupportActionBar(null)
         _binding = null
     }
 }
