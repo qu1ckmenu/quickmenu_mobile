@@ -76,17 +76,6 @@ class CarrinhoFragment : Fragment(), CarrinhoActionsListener {
         }
 
 
-        // Botão de teste para adicionar itens
-        binding.btnAddItemTeste.setOnClickListener {
-            val novoItem = ItemCarrinho(
-                produtoId = "ID_${System.currentTimeMillis()}",
-                nome = "Item Teste",
-                preco = 10.00,
-                quantidade = 1,
-                imageUrl = ""
-            )
-            saveOrUpdateCartItem(novoItem)
-        }
     }
 
     private fun setupRecyclerView() {
@@ -148,7 +137,9 @@ class CarrinhoFragment : Fragment(), CarrinhoActionsListener {
             "donoId" to donoIdFinal,               // Correto!
             "idPedido" to pedidoId,
             "precoTotal" to precoTotal,
-            "dataPedido" to dataAtual
+            "dataPedido" to dataAtual,
+            "status" to "Ativo",
+
         )
         // ✅ **FIM DA CORREÇÃO**
 

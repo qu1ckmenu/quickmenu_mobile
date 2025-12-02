@@ -62,7 +62,7 @@ class ProdutoFragment : Fragment() {
         arguments?.let {
             produtoId = it.getString("produtoId")
             donoId = it.getString("donoId")
-            idRestaurante = it.getString("idRestaurante") // ⬅️ NOVO: Recebe o ID do restaurante
+            idRestaurante = it.getString("idRestaurante") //  Recebe o ID do restaurante
             nomeProduto = it.getString("nomeProduto")
             precoUnitario = it.getDouble("precoUnitario")
             descricaoProduto = it.getString("descricaoProduto")

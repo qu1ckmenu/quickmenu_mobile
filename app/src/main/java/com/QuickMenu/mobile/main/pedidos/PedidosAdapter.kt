@@ -1,12 +1,14 @@
 package com.QuickMenu.mobile.main.pedidos
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.QuickMenu.mobile.R
 import com.QuickMenu.mobile.databinding.ItemPedidoBinding
-import java.text.NumberFormat
-import java.util.Locale
+import com.bumptech.glide.Glide // Importe o Glide aqui
 
 class PedidosAdapter(
     private val pedidos: List<Pedido>
@@ -23,16 +25,46 @@ class PedidosAdapter(
 
     override fun onBindViewHolder(holder: PedidoViewHolder, position: Int) {
         val pedido = pedidos[position]
+
         with(holder.binding) {
-            // Se o ID do restaurante estiver vazio, colocamos um texto padrão
-            restaurante.text = if(pedido.restauranteId.isEmpty()) "Restaurante Teste" else pedido.restauranteId
 
-            textTime.text = pedido.horarioFormatado
+            // 1. Define o NOME do restaurante ao invés do ID
+            restaurante.text = pedido.nomeRestaurante
 
-            // Opcional: Mostrar o total do pedido em algum lugar do card se tiver o TextView
-            // val formatador = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-            // txtTotal.text = formatador.format(pedido.precoTotal)
+            // 2. Define a IMAGEM do restaurante usando Glide
+            if (pedido.fotoRestaurante.isNotEmpty()) {
+                Glide.with(root.context)
+                    .load(pedido.fotoRestaurante)
+                    .centerCrop() // Ou .fitCenter(), dependendo do seu gosto
+                    .placeholder(R.drawable.restaurante_default) // Imagem enquanto carrega
+                    .into(imageButton2)
+            } else {
+                imageButton2.setImageResource(R.drawable.restaurante_default)
+            }
 
+            // --- LÓGICA DE CORES E STATUS ---
+            val corFundoId = if (pedido.status == Status.Ativo) {
+                R.color.pedido_ativo_background
+            } else {
+                R.color.pedido_encerrado_background
+            }
+
+            val corFundo = ContextCompat.getColor(root.context, corFundoId)
+            cardPedido.setCardBackgroundColor(corFundo)
+
+            // Define a cor de fundo do botão (borda/fundo redondo)
+            imageButton2.backgroundTintList = ColorStateList.valueOf(corFundo)
+
+            // --- LÓGICA DE TEXTO DO HORÁRIO ---
+            if (pedido.status == Status.Ativo) {
+                textHorario.text = "Horário de compra :"
+                textTime.text = pedido.horarioCompraFormatado
+            } else {
+                textHorario.text = "Horário de retirada :"
+                textTime.text = pedido.horarioRetiradaFormatado ?: pedido.horarioCompraFormatado
+            }
+
+            // --- CONFIGURAÇÃO DA LISTA DE PRODUTOS ---
             if (recyclerProdutos.layoutManager == null) {
                 recyclerProdutos.layoutManager = LinearLayoutManager(root.context)
                 recyclerProdutos.setHasFixedSize(true)

@@ -19,12 +19,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Locale
+import com.google.firebase.Timestamp
 
 class PedidosFragment : Fragment() {
 
     private var _binding: FragmentPedidosBinding? = null
     private val binding get() = _binding!!
-
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
@@ -38,101 +38,138 @@ class PedidosFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
         fetchOrders()
     }
 
     private fun setupRecyclerView() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        // Inicializa com lista vazia para evitar erros visuais antes do carregamento
         binding.recyclerView.adapter = PedidosAdapter(emptyList())
     }
 
     private fun fetchOrders() {
         val userId = auth.currentUser?.uid
-        if (userId == null) {
-            Toast.makeText(context, "Usuário não logado", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (userId == null) return
 
-        // Usamos lifecycleScope para fazer operações assíncronas de forma limpa
         lifecycleScope.launch {
             try {
-                // 1. Busca os documentos principais dos pedidos
-                // Ordenado por 'dataPedido' (criado no carrinho) descrescente (mais recente primeiro)
+                // 1. Busca os pedidos do usuário
                 val pedidosSnapshot = db.collection("Usuario")
                     .document(userId)
                     .collection("Pedidos")
                     .orderBy("dataPedido", Query.Direction.DESCENDING)
-                    .limit(5)
+                    .limit(10)
                     .get()
-                    .await() // await() suspende a execução até o resultado chegar
+                    .await()
 
                 val listaPedidosMontada = mutableListOf<Pedido>()
 
-                // 2. Para cada pedido encontrado, buscamos seus itens e formatamos
                 for (document in pedidosSnapshot.documents) {
                     val pedidoId = document.id
                     val dados = document.data
 
-                    val idRestaurante = dados?.get("idRestaurante") as? String ?: "Restaurante Exemplo"
+                    // --- LEITURA DOS DADOS BÁSICOS ---
+                    val idRestaurante = dados?.get("idRestaurante") as? String ?: ""
+                    // IMPORTANTE: Precisamos do donoId para achar o restaurante no banco
+                    val donoId = dados?.get("donoId") as? String ?: ""
                     val precoTotal = dados?.get("precoTotal") as? Double ?: 0.0
 
-                    // Converte o ID (yyyyMMdd_HHmmss) para horário legível
-                    val horarioFormatado = converterIdParaHorario(pedidoId)
+                    // --- NOVA LÓGICA: BUSCAR DADOS DO RESTAURANTE ---
+                    var nomeRestaurante = "Restaurante Desconhecido"
+                    var fotoRestaurante = ""
 
-                    // 3. Busca a SUBCOLEÇÃO "Itens" deste pedido específico
+                    // Verifica se temos os dois IDs necessários para o caminho
+                    if (idRestaurante.isNotEmpty() && donoId.isNotEmpty()) {
+
+                        // Caminho corrigido baseado na estrutura do HomeFragment:
+                        // operadores -> {donoId} -> restaurantes -> {idRestaurante}
+                        val docRestaurante = db.collection("operadores")
+                            .document(donoId)
+                            .collection("restaurantes")
+                            .document(idRestaurante)
+                            .get()
+                            .await()
+
+                        if (docRestaurante.exists()) {
+                            nomeRestaurante = docRestaurante.getString("nome") ?: "Nome Indisponível"
+                            // Confirme se o campo é 'imageUrl', 'logoUrl' ou 'foto' no seu banco
+                            fotoRestaurante = docRestaurante.getString("imageUrl") ?: ""
+                        }
+                    } else if (idRestaurante.isNotEmpty() && donoId.isEmpty()) {
+                        // FALLBACK: Se o pedido for antigo e não tiver 'donoId',
+                        // tentamos achar o restaurante via CollectionGroup (mais lento, mas funciona)
+                        val querySnapshot = db.collectionGroup("restaurantes")
+                            .whereEqualTo(com.google.firebase.firestore.FieldPath.documentId(), idRestaurante)
+                            .get()
+                            .await()
+
+                        if (!querySnapshot.isEmpty) {
+                            val doc = querySnapshot.documents[0]
+                            nomeRestaurante = doc.getString("nome") ?: "Nome Indisponível"
+                            fotoRestaurante = doc.getString("imageUrl") ?: ""
+                        }
+                    }
+                    // ------------------------------------------------
+
+                    // LER STATUS
+                    val statusString = dados?.get("status") as? String ?: "Ativo"
+                    val statusPedido = if (statusString == "Encerrado") Status.Encerrado else Status.Ativo
+
+                    // TRATAR HORÁRIOS
+                    val horaCompra = converterIdParaHorario(pedidoId)
+                    var horaRetirada: String? = null
+                    if (statusPedido == Status.Encerrado) {
+                        val timestampEncerrado = dados?.get("dataStatusEncerrado") as? Timestamp
+                        horaRetirada = formatarTimestamp(timestampEncerrado)
+                    }
+
+                    // BUSCAR ITENS DO PEDIDO
                     val itensSnapshot = document.reference.collection("Itens").get().await()
-
-                    // Converte os documentos da subcoleção para objetos ProdutoPedido
                     val produtosList = itensSnapshot.documents.mapNotNull { itemDoc ->
                         itemDoc.toObject(ProdutoPedido::class.java)
                     }
 
-                    // Cria o objeto final
                     val novoPedido = Pedido(
                         id = pedidoId,
                         restauranteId = idRestaurante,
+                        nomeRestaurante = nomeRestaurante,
+                        fotoRestaurante = fotoRestaurante,
                         produtoPedidos = produtosList,
                         precoTotal = precoTotal,
-                        status = Status.Ativo, // Status hardcoded por enquanto
-                        horarioFormatado = horarioFormatado
+                        status = statusPedido,
+                        horarioCompraFormatado = horaCompra,
+                        horarioRetiradaFormatado = horaRetirada
                     )
 
                     listaPedidosMontada.add(novoPedido)
                 }
 
-                // 4. Atualiza a UI na Thread principal
-                if (listaPedidosMontada.isEmpty()) {
-                    Toast.makeText(context, "Nenhum pedido recente.", Toast.LENGTH_SHORT).show()
-                } else {
+                if (listaPedidosMontada.isNotEmpty()) {
                     binding.recyclerView.adapter = PedidosAdapter(listaPedidosMontada)
                 }
 
             } catch (e: Exception) {
-                Log.e("PedidosFragment", "Erro ao buscar pedidos", e)
-                Toast.makeText(context, "Erro ao carregar pedidos.", Toast.LENGTH_SHORT).show()
+                Log.e("PedidosFragment", "Erro: ", e)
+                Toast.makeText(context, "Erro ao carregar pedidos", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // Função auxiliar para formatar a data a partir do ID
     private fun converterIdParaHorario(pedidoId: String): String {
         return try {
-            // O formato do ID gerado no Carrinho é: yyyyMMdd_HHmmss
             val formatoEntrada = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
             val data = formatoEntrada.parse(pedidoId)
-
-            // O formato de saída desejado (ex: 14:30 ou 23/11 14:30)
-            // Você pediu horário, vou colocar HH:mm
             val formatoSaida = SimpleDateFormat("HH:mm - dd/MM", Locale("pt", "BR"))
-
             if (data != null) formatoSaida.format(data) else "--:--"
         } catch (e: Exception) {
-            Log.e("DataParse", "Erro ao converter data do ID: $pedidoId", e)
-            pedidoId // Retorna o próprio ID se falhar
+            pedidoId
         }
+    }
+
+    private fun formatarTimestamp(timestamp: Timestamp?): String {
+        if (timestamp == null) return "--:--"
+        val sdf = SimpleDateFormat("HH:mm - dd/MM", Locale("pt", "BR"))
+        return sdf.format(timestamp.toDate())
     }
 
     override fun onDestroyView() {

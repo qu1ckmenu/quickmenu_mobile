@@ -8,4 +8,8 @@
     <color name="cinza_medio">#CCCCCC</color>
     <color name="cinza_intenso">#A9A9A9</color>
     <color name="color_Primary_suave">#ABFFF6C9</color>
+    <color name="pedido_ativo_background">#FFFFFF</color>
+    <color name="pedido_encerrado_background">#E4E4E4</color>
+    <color name="background">#FFF9CB</color>
+
 </resources>
