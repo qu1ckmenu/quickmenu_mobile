@@ -112,8 +112,16 @@ class CarrinhoFragment : Fragment(), CarrinhoActionsListener {
 
 
     // FINALIZAR PEDIDO
+    // DENTRO DA CLASSE CarrinhoFragment
+
+    // FINALIZAR PEDIDO
     private fun finalizarPedido() {
         val userId = auth.currentUser?.uid ?: return
+        // Adiciona uma verificação de segurança extra
+        if (listaItens.isEmpty()) {
+            Toast.makeText(context, "Seu carrinho está vazio!", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         // Gerar ID baseado na Data e Hora (yyyyMMdd_HHmmss)
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
@@ -127,12 +135,22 @@ class CarrinhoFragment : Fragment(), CarrinhoActionsListener {
         val pedidoRef = banco.collection("Usuario").document(userId)
             .collection("Pedidos").document(pedidoId)
 
+        // ✅ **INÍCIO DA CORREÇÃO**
+        // Pega os IDs do primeiro item da lista.
+        // Assumimos que todos os itens no carrinho são do mesmo restaurante.
+        val primeiroItem = listaItens.first()
+        val idRestauranteFinal = primeiroItem.idRestaurante
+        val donoIdFinal = primeiroItem.donoId
+
         // Dados do cabeçalho do pedido
         val dadosPedido = hashMapOf(
-            "idRestaurante" to "", // Por enquanto vazio, conforme solicitado
+            "idRestaurante" to idRestauranteFinal, // Correto!
+            "donoId" to donoIdFinal,               // Correto!
+            "idPedido" to pedidoId,
             "precoTotal" to precoTotal,
-            "dataPedido" to dataAtual // Útil para ordenação futura
+            "dataPedido" to dataAtual
         )
+        // ✅ **FIM DA CORREÇÃO**
 
         // Iniciar um BATCH (Lote de escrita).
         // garante que cria o pedido E apaga o carrinho ao mesmo tempo.
@@ -166,6 +184,7 @@ class CarrinhoFragment : Fragment(), CarrinhoActionsListener {
                 Log.e("Carrinho", "Erro batch: ", e)
             }
     }
+
 
 
     private fun getCartRef() =

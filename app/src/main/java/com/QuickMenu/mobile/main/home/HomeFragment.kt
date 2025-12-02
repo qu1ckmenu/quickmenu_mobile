@@ -51,27 +51,44 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         db = Firebase.firestore
 
-        setupRecyclerViews() // Configura os adapters vazios
+        setupRecyclerViews()
 
         loadFavorites()
         loadRestaurantsFromFirestore()
-        fetchRecentOrderedProducts() // <--- NOVA FUNÇÃO AQUI
+        fetchRecentOrderedProducts()
 
         setupSearchBar()
         setupFilterButtons()
         voltar()
     }
-
-    // --- SETUP INICIAL ---
     private fun setupRecyclerViews() {
-        // Setup Recentes (Horizontal)
-        recentAdapter = ItemProdutoHomeAdapter(emptyList())
+        // 1. Atualize a inicialização do adapter para passar a lógica de clique
+        recentAdapter = ItemProdutoHomeAdapter(emptyList()) { produtoClicado ->
+            // Lógica de navegação ao clicar em um produto recente
+            val bundle = Bundle().apply {
+                putString("produtoId", produtoClicado.produtoId)
+                putString("donoId", produtoClicado.donoId)
+                putString("idRestaurante", produtoClicado.idRestaurante) // ID do documento do restaurante
+                putString("nomeProduto", produtoClicado.nome)
+                putDouble("precoUnitario", produtoClicado.precoUnitario)
+                putString("descricaoProduto", produtoClicado.descricao)
+                putString("imageUrlProduto", produtoClicado.imageUrl)
+            }
+
+            try {
+                // Navega para o ProdutoFragment com todos os dados
+                findNavController().navigate(R.id.action_homeFragment_to_produtoFragment, bundle)
+            } catch (e: Exception) {
+                Log.e("HomeFragment", "Falha ao navegar para ProdutoFragment: ${e.message}", e)
+            }
+        }
+
+
         binding.recyclerItemProduto.apply {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             adapter = recentAdapter
         }
 
-        // Setup Restaurantes (Vertical)
         restaurantAdapter = ItemRestauranteAdapter(mutableListOf(),
             onFavoriteClick = { toggleFavorite(it) },
             onItemClick = { restaurante ->
@@ -93,13 +110,12 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // --- NOVA LÓGICA: BUSCAR PRODUTOS RECENTES ---
     private fun fetchRecentOrderedProducts() {
         val userId = auth.currentUser?.uid ?: return
 
         lifecycleScope.launch {
             try {
-                // 1. Busca os últimos 5 pedidos (para garantir que teremos pelo menos 3 itens)
+                // 1. Fetch recent orders from the User's history
                 val pedidosSnapshot = db.collection("Usuario")
                     .document(userId)
                     .collection("Pedidos")
@@ -108,60 +124,80 @@ class HomeFragment : Fragment() {
                     .get()
                     .await()
 
-                val todosProdutosRecentes = mutableListOf<ItemProdutoHome>()
-                val nomesAdicionados = mutableSetOf<String>() // Para evitar duplicatas visuais (ex: 3 cocas seguidas)
+                val produtosRecentes = mutableListOf<ItemProdutoHome>()
+                val idsProdutosAdicionados = mutableSetOf<String>()
 
-                // 2. Itera sobre os pedidos para buscar a subcoleção "Itens"
-                for (doc in pedidosSnapshot.documents) {
-                    // Se já temos 3 produtos únicos, paramos de buscar para economizar leitura
-                    if (todosProdutosRecentes.size >= 3) break
+                for (pedidoDoc in pedidosSnapshot.documents) {
+                    if (produtosRecentes.size >= 3) break
 
-                    val itensSnapshot = doc.reference.collection("Itens").get().await()
+                    // 2. Validate IDs from the Order document
+                    val restauranteId = pedidoDoc.getString("idRestaurante")
+                    val donoId = pedidoDoc.getString("donoId") // Make sure your order saving logic saves this!
+
+                    // SAFETY CHECK: If IDs are missing, skip this order to prevent crash
+                    if (restauranteId.isNullOrEmpty() || donoId.isNullOrEmpty()) {
+                        Log.w("HomeFragment", "Pedido ${pedidoDoc.id} incompleto: restauranteId=$restauranteId, donoId=$donoId")
+                        continue
+                    }
+
+                    // 3. Fetch items inside this order
+                    val itensSnapshot = pedidoDoc.reference.collection("Itens").get().await()
 
                     for (itemDoc in itensSnapshot.documents) {
-                        val produtoBD = itemDoc.toObject(ProdutoPedido::class.java)
+                        val produtoPedidoInfo = itemDoc.toObject(ProdutoPedido::class.java)
 
-                        if (produtoBD != null && !nomesAdicionados.contains(produtoBD.nome)) {
+                        if (produtoPedidoInfo != null && !idsProdutosAdicionados.contains(produtoPedidoInfo.produtoId)) {
 
-                            // Formata o preço
-                            val precoFormatado = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-                                .format(produtoBD.preco)
+                            // 4. Construct path safely using validated IDs
+                            // Path: operadores/{donoId}/restaurantes/{restauranteId}/produtos/{produtoId}
+                            // NOTE: Ensure collection name matches Firestore (e.g., "produtos" vs "Produto")
 
-                            // Cria o objeto de UI
-                            val itemHome = ItemProdutoHome(
-                                nome = produtoBD.nome,
-                                preco = precoFormatado,
-                                imageUrl = produtoBD.imageUrl
-                            )
+                            val produtoRef = db.collection("operadores").document(donoId)
+                                .collection("restaurantes").document(restauranteId)
+                                .collection("produtos").document(produtoPedidoInfo.produtoId)
 
-                            todosProdutosRecentes.add(itemHome)
-                            nomesAdicionados.add(produtoBD.nome)
+                            val produtoCompletoDoc = produtoRef.get().await()
 
-                            if (todosProdutosRecentes.size >= 3) break
+                            if (produtoCompletoDoc.exists()) {
+                                val itemHome = ItemProdutoHome(
+                                    produtoId = produtoCompletoDoc.id,
+                                    donoId = donoId,
+                                    idRestaurante = restauranteId,
+                                    nome = produtoCompletoDoc.getString("nome") ?: "",
+                                    precoUnitario = produtoCompletoDoc.getDouble("preco") ?: 0.0,
+                                    // Use 'descricao' if available, otherwise empty string
+                                    descricao = produtoCompletoDoc.getString("descricao"),
+                                    imageUrl = produtoCompletoDoc.getString("imageUrl")
+                                )
+
+                                produtosRecentes.add(itemHome)
+                                idsProdutosAdicionados.add(itemHome.produtoId)
+
+                                if (produtosRecentes.size >= 3) break
+                            }
                         }
                     }
                 }
 
-                // 3. Atualiza o Adapter na Thread principal
-                if (todosProdutosRecentes.isNotEmpty()) {
-                    recentAdapter.updateList(todosProdutosRecentes)
-                    // binding.textRecentes.visibility = View.VISIBLE
-                } else {
-                    // Opcional: Esconder o título "Recentes" se não houver nada
-                    // binding.textRecentes.visibility = View.GONE
-                    Log.d("HomeFragment", "Nenhum produto recente encontrado.")
+                if (isAdded) {
+                    if (produtosRecentes.isNotEmpty()) {
+                        recentAdapter.updateList(produtosRecentes)
+                        // Make sure you have this TextView in your layout, or remove these lines
+                        // binding.textRecentes.visibility = View.VISIBLE
+                    } else {
+                        // binding.textRecentes.visibility = View.GONE
+                    }
                 }
-
             } catch (e: Exception) {
                 Log.e("HomeFragment", "Erro ao buscar produtos recentes", e)
             }
         }
     }
 
-    // ... (Mantenha suas outras funções: loadRestaurants, searchBar, favorites, etc.) ...
+
+
 
     private fun loadRestaurantsFromFirestore() {
-        // ... (seu código existente)
         db.collectionGroup("restaurantes").get()
             .addOnSuccessListener { result ->
                 if (result.isEmpty) return@addOnSuccessListener
@@ -176,8 +212,6 @@ class HomeFragment : Fragment() {
                 filterAndDisplayRestaurants("")
             }
     }
-
-    // ... (Resto do código igual ao que você enviou)
 
     private fun loadFavorites() {
         val prefs = activity?.getSharedPreferences("RestaurantPreferences", Context.MODE_PRIVATE) ?: return
@@ -199,7 +233,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupFilterButtons() {
-        // ... (seu código existente)
         binding.btnFavoritos.setOnClickListener {
             // ...
             val favoritedList = allRestaurants.filter { favoriteRestaurants.contains(it.id) }
@@ -236,11 +269,9 @@ class HomeFragment : Fragment() {
         if (lastSearchedRestaurants.size > 5) {
             lastSearchedRestaurants = lastSearchedRestaurants.take(5).toMutableList()
         }
-        // ... Salvar em SharedPreferences (código existente)
     }
 
     private fun voltar(){
-        // ... (seu código existente)
         val navController = findNavController()
         val isCardapio = navController.previousBackStackEntry?.destination?.id == R.id.cardapioFragment
         val backPressedCallback = object : OnBackPressedCallback(true) {

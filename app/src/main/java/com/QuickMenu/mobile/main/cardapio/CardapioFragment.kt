@@ -100,7 +100,7 @@ class CardapioFragment : Fragment() {
         val bundle = Bundle().apply {
             putString("produtoId", produto.produtoId)
             putString("donoId", currentDonoId)
-
+            putString("idRestaurante", currentRestauranteId) // ID do restaurante que você já tem
             putString("nomeProduto", produto.nome)
             putDouble("precoUnitario", produto.preco)
             putString("descricaoProduto", produto.descricao)

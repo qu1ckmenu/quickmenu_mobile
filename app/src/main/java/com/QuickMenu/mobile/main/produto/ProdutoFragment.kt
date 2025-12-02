@@ -32,6 +32,8 @@ class ProdutoFragment : Fragment() {
     private var descricaoProduto: String? = null // 🆕 Novo
     private var imageUrlProduto: String? = null   // 🆕 Novo
 
+    private var idRestaurante: String? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -57,10 +59,10 @@ class ProdutoFragment : Fragment() {
     }
 
     private fun loadArguments() {
-        // Assume que você passará estes argumentos ao navegar do CardapioFragment
         arguments?.let {
             produtoId = it.getString("produtoId")
             donoId = it.getString("donoId")
+            idRestaurante = it.getString("idRestaurante") // ⬅️ NOVO: Recebe o ID do restaurante
             nomeProduto = it.getString("nomeProduto")
             precoUnitario = it.getDouble("precoUnitario")
             descricaoProduto = it.getString("descricaoProduto")
@@ -185,13 +187,14 @@ class ProdutoFragment : Fragment() {
                     nome = nomeFinal,
                     preco = precoUnitario,
                     quantidade = quantidadeFinal,
-                    imageUrl = imageUrlFinal
+                    imageUrl = imageUrlFinal,
+                    idRestaurante = idRestaurante ?: "", // Usa o novo ID recebido
+                    donoId = donoId ?: ""                 // Usa o donoId recebido
                 )
 
                 docProduto.set(novoItem)
                     .addOnSuccessListener {
-                        // ✅ SUCESSO NA CRIAÇÃO
-                        Toast.makeText(context, "$nomeFinal (x$quantidadeFinal) adicionado ao carrinho! Indo para o Carrinho.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "$nomeFinal (x$quantidadeFinal) adicionado ao carrinho!", Toast.LENGTH_SHORT).show()
                         navegarParaCarrinho()
                     }
                     .addOnFailureListener {
