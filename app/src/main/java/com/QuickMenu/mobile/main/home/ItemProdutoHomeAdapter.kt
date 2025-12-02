@@ -1,52 +1,46 @@
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.QuickMenu.mobile.R
+
 import com.QuickMenu.mobile.databinding.ItemProdutoHomeBinding
 import com.QuickMenu.mobile.main.home.ItemProdutoHome
+import com.bumptech.glide.Glide
 
-// Data Class (Apenas para referência no Adapter)
-/*data class ItemProduto(
-    val price: String,
-    val imageResId: Int
-)*/
+class ItemProdutoHomeAdapter(
+    private var items: List<ItemProdutoHome>
+) : RecyclerView.Adapter<ItemProdutoHomeAdapter.ViewHolder>() {
 
-class ItemProdutoHomeAdapter(private var products:  MutableList<ItemProdutoHome>  /* mutableListOf<ItemProduto>*/):
-    RecyclerView.Adapter<ItemProdutoHomeAdapter.ItemProdutoViewHolder>() {
+    class ViewHolder(val binding: ItemProdutoHomeBinding) : RecyclerView.ViewHolder(binding.root)
 
-    // 1. ViewHolder: Agora armazena a instância do Binding
-    class ItemProdutoViewHolder(val binding: ItemProdutoHomeBinding) :
-        RecyclerView.ViewHolder(binding.root) // O 'root' é a View principal do item
-
-    // 2. onCreateViewHolder: Infla o layout usando o Binding.
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemProdutoViewHolder {
-        val binding = ItemProdutoHomeBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return ItemProdutoViewHolder(binding)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val binding = ItemProdutoHomeBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ViewHolder(binding)
     }
 
-    // 3. onBindViewHolder: Liga os dados usando a instância do Binding.
-    override fun onBindViewHolder(holder: ItemProdutoViewHolder, position: Int) {
-        val item = products[position]
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val item = items[position]
 
-        // Uso direto do ID da View via Binding:
-        holder.binding.tvPrice.text = item.price
-        holder.binding.imgItem.setImageResource(item.imageResId) // Assumindo IDs tv_price e img_item
+        holder.binding.tvNome.text = item.nome // Supondo que você tenha esse Textview
+        holder.binding.tvPrice.text = item.preco
 
-        holder.binding.root.setOnClickListener {
-            // TODO: Lógica de clique do produto.
+        // Carregamento da Imagem com Glide
+        if (!item.imageUrl.isNullOrEmpty()) {
+            Glide.with(holder.itemView.context)
+                .load(item.imageUrl)
+                .centerCrop()
+                .placeholder(R.drawable.pao) // Imagem padrão enquanto carrega
+                .error(R.drawable.pao)       // Imagem caso falhe
+                .into(holder.binding.imgItem) // ID da ImageView no XML item_produto
+        } else {
+            holder.binding.imgItem.setImageResource(R.drawable.pao)
         }
     }
 
+    override fun getItemCount() = items.size
 
-
-    // 4. getItemCount: Retorna o número total de itens.
-    override fun getItemCount() = products.size
-
-    fun updateList(newProducts: MutableList<ItemProdutoHome>) {
-        products = newProducts
+    fun updateList(newItems: List<ItemProdutoHome>) {
+        items = newItems
         notifyDataSetChanged()
     }
 }

@@ -1,24 +1,42 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
+    android:layout_width="100dp"
     android:layout_height="wrap_content"
     android:layout_marginEnd="16dp"
     android:gravity="center"
     android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_nome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:gravity="center_horizontal"
+        android:text="Produto"
+        android:textColor="#000000"
+        android:textStyle="bold" />
 
     <ImageButton
         android:id="@+id/img_item"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:background="@drawable/rounded_image_background"
+        android:clipToOutline="true"
+        android:outlineProvider="background"
         android:scaleType="centerCrop"
-        android:contentDescription="Imagem de Produto Recente"
-        android:src="@drawable/pao" />
+        android:src="@drawable/pao"
+        android:contentDescription="Imagem de Produto Recente"/>
+
     <TextView
         android:id="@+id/tv_price"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:gravity="center_horizontal"
         android:text="R$ X,XX"
         android:textColor="#000000"
         android:textStyle="bold" />

@@ -1,6 +1,7 @@
 package com.QuickMenu.mobile.main.home
 
 data class ItemProdutoHome(
-    val price: String,
-    val imageResId: Int // Int é o tipo para IDs de recurso (R.drawable.xxx)
+    val nome: String,
+    val preco: String,
+    val imageUrl: String? = null // Agora aceita URL
 )
