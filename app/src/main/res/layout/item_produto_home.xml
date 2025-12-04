@@ -15,7 +15,7 @@
         android:maxLines="1"
         android:ellipsize="end"
         android:gravity="center_horizontal"
-        android:text="Produto"
+        android:text="@string/produto"
         android:textColor="#000000"
         android:textStyle="bold" />
 
@@ -28,7 +28,7 @@
         android:outlineProvider="background"
         android:scaleType="centerCrop"
         android:src="@drawable/pao"
-        android:contentDescription="Imagem de Produto Recente"/>
+        android:contentDescription="@string/imagem_de_produto_recente"/>
 
     <TextView
         android:id="@+id/tv_price"
@@ -38,7 +38,7 @@
         android:maxLines="1"
         android:ellipsize="end"
         android:gravity="center_horizontal"
-        android:text="R$ X,XX"
+        android:text="@string/r_x_xx"
         android:textColor="#000000"
         android:textStyle="bold" />
 </LinearLayout>

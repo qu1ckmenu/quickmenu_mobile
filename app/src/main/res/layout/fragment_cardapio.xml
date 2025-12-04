@@ -61,7 +61,7 @@
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="24dp"
                         android:paddingVertical="8dp"
-                        android:text="Cantina da Sônia"
+                        android:text="@string/cantina_da_s_nia"
                         android:textColor="@android:color/white"
                         android:textStyle="bold"
                         android:textSize="20sp"/>
@@ -78,7 +78,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:paddingHorizontal="32dp"
-                android:text="A melhor comida caseira da região."
+                android:text="@string/a_melhor_comida_caseira_da_regi_o"
                 android:textColor="#5D4037"
                 android:textSize="14sp"/>
 
@@ -97,7 +97,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:text="Ver Carrinho"
+        android:text="@string/ver_carrinho"
         android:textColor="@android:color/white"
         android:backgroundTint="@color/color_Secondary"
         app:iconTint="@android:color/white"

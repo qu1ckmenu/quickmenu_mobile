@@ -17,7 +17,7 @@
         android:background="@drawable/rounded_search_background"
         android:drawableStart="@drawable/ic_search"
         android:drawablePadding="8dp"
-        android:hint="Pesquisar"
+        android:hint="@string/pesquisar"
         android:paddingStart="16dp"
         android:imeOptions="actionSearch"
         android:inputType="text"
@@ -37,9 +37,9 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/search_bar">
-        <Button android:id="@+id/btn_favoritos" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Favoritos" android:textColor="#000000"/>
-        <Button android:id="@+id/btn_promocoes" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Promoções" android:textColor="#000000"/>
-        <Button android:id="@+id/btn_tendencias" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tendências" android:textColor="#000000"/>
+        <Button android:id="@+id/btn_favoritos" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/favoritos" android:textColor="#000000"/>
+        <Button android:id="@+id/btn_promocoes" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/promo_es" android:textColor="#000000"/>
+        <Button android:id="@+id/btn_tendencias" style="@style/Widget.AppCompat.Button.Borderless" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/tend_ncias" android:textColor="#000000"/>
     </LinearLayout>
 
     <TextView
@@ -48,7 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:text="Recentes"
+        android:text="@string/recentes"
         android:textColor="@color/black"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -77,7 +77,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:text="Restaurantes"
+        android:text="@string/restaurantes"
         android:textColor="@color/black"
         android:textSize="24sp"
         android:textStyle="bold"

@@ -2,19 +2,19 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:title="Home"
+    <item android:title="@string/home"
         android:icon="@drawable/ic_home"
         android:id="@+id/homeFragment"
         />
-    <item android:title="Cart"
+    <item android:title="@string/cart"
         android:icon="@drawable/ic_cart"
         android:id="@+id/carrinhoFragment"
         />
-    <item android:title="Pedidos"
+    <item android:title="@string/pedidos"
         android:icon="@drawable/ic_notification"
         android:id="@+id/pedidosFragment"
         />
-    <item android:title="Person"
+    <item android:title="@string/person"
         android:icon="@drawable/ic_profile"
         android:id="@+id/usuarioFragment"
         />

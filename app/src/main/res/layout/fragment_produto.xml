@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".main.produtoCardapio.ProdutoFragment">
+    tools:context=".main.MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/card_produto"
@@ -19,12 +19,12 @@
 
         <ImageButton
             android:id="@+id/btn_voltar"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:background="@drawable/circle_button_background"
-            android:contentDescription="Botão de voltar"
+            android:contentDescription="@string/bot_o_de_voltar"
             android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
             app:layout_constraintStart_toStartOf="parent"
@@ -97,10 +97,10 @@
 
             <ImageButton
                 android:id="@+id/btn_aumentar_qtd"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@android:color/transparent"
-                android:contentDescription="Aumentar quantidade"
+                android:contentDescription="@string/aumentar_quantidade"
                 android:src="@drawable/ic_up_arrow"
                 app:tint="@color/black" />
 
@@ -112,14 +112,14 @@
                 android:fontFamily="sans-serif-medium"
                 android:textColor="@color/black"
                 android:textSize="16sp"
-                android:text="1" />
+                android:text="@string/_1" />
 
             <ImageButton
                 android:id="@+id/btn_diminuir_qtd"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="@android:color/transparent"
-                android:contentDescription="Diminuir quantidade"
+                android:contentDescription="@string/diminuir_quantidade"
                 android:src="@drawable/ic_down_arrow"
                 app:tint="@color/black" />
         </LinearLayout>
@@ -146,7 +146,7 @@
             android:drawableTint="@color/white"
             android:paddingHorizontal="24dp"
             android:paddingVertical="12dp"
-            android:text="Adicionar"
+            android:text="@string/adicionar"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="16sp"

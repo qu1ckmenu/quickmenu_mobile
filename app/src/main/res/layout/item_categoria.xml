@@ -12,7 +12,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="8dp"
         android:layout_marginTop="16dp"
-        android:text="Lanches"
+        android:text="@string/lanches"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@color/black" />

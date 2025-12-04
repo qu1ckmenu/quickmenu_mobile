@@ -15,7 +15,7 @@
         android:id="@+id/img_restaurant"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:contentDescription="Logotipo do Restaurante"
+        android:contentDescription="@string/logotipo_do_restaurante"
         android:scaleType="centerCrop"
         android:src="@drawable/sweetcake" />
 
@@ -31,7 +31,7 @@
             android:id="@+id/tv_restaurant_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nome do Restaurante"
+            android:text="@string/nome_do_restaurante"
             android:textColor="#000000"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -40,7 +40,7 @@
             android:id="@+id/tv_restaurant_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tipo de Cozinha"
+            android:text="@string/tipo_de_cozinha"
             android:textColor="#757575" />
     </LinearLayout>
 
@@ -51,7 +51,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Adicionar aos favoritos"
+        android:contentDescription="@string/adicionar_aos_favoritos"
         android:padding="8dp"
         app:srcCompat="@drawable/ic_favorite_border" /> <!-- Ícone padrão -->
 

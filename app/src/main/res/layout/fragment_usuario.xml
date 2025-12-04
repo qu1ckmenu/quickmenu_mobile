@@ -11,7 +11,7 @@
         android:id="@+id/titulo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Perfil"
+        android:text="@string/perfil"
         android:textSize="22dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -37,7 +37,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginEnd="16dp"
         android:background="@color/white"
-        android:contentDescription="Editar nome de usuário"
+        android:contentDescription="@string/editar_nome_de_usu_rio"
         android:padding="8dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_edit_black"
@@ -51,7 +51,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="28dp"
         android:layout_marginTop="24dp"
-        android:text="Nome"
+        android:text="@string/nome"
         android:textSize="20dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/foto_perfil" />
@@ -74,7 +74,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="28dp"
         android:layout_marginTop="16dp"
-        android:text="Email"
+        android:text="@string/email"
         android:textSize="20dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/nome" />
@@ -85,7 +85,7 @@
         android:layout_height="50dp"
         android:layout_marginHorizontal="30dp"
         android:layout_marginStart="28dp"
-        android:text="Olivia13@gmail.com"
+        android:text="@string/olivia13_gmail_com"
         android:textSize="22dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/label_email" />
@@ -96,7 +96,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="36dp"
         android:layout_marginTop="24dp"
-        android:text="Meus Restaurantes"
+        android:text="@string/meus_restaurantes"
         android:textSize="20dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/email" />
