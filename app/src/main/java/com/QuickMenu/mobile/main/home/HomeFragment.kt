@@ -62,13 +62,12 @@ class HomeFragment : Fragment() {
         voltar()
     }
     private fun setupRecyclerViews() {
-        // 1. Atualize a inicialização do adapter para passar a lógica de clique
         recentAdapter = ItemProdutoHomeAdapter(emptyList()) { produtoClicado ->
-            // Lógica de navegação ao clicar em um produto recente
+
             val bundle = Bundle().apply {
                 putString("produtoId", produtoClicado.produtoId)
                 putString("donoId", produtoClicado.donoId)
-                putString("idRestaurante", produtoClicado.idRestaurante) // ID do documento do restaurante
+                putString("idRestaurante", produtoClicado.idRestaurante)
                 putString("nomeProduto", produtoClicado.nome)
                 putDouble("precoUnitario", produtoClicado.precoUnitario)
                 putString("descricaoProduto", produtoClicado.descricao)
@@ -76,7 +75,6 @@ class HomeFragment : Fragment() {
             }
 
             try {
-                // Navega para o ProdutoFragment com todos os dados
                 findNavController().navigate(R.id.action_homeFragment_to_produtoFragment, bundle)
             } catch (e: Exception) {
                 Log.e("HomeFragment", "Falha ao navegar para ProdutoFragment: ${e.message}", e)
@@ -115,7 +113,6 @@ class HomeFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
-                // 1. Fetch recent orders from the User's history
                 val pedidosSnapshot = db.collection("Usuario")
                     .document(userId)
                     .collection("Pedidos")
@@ -130,27 +127,20 @@ class HomeFragment : Fragment() {
                 for (pedidoDoc in pedidosSnapshot.documents) {
                     if (produtosRecentes.size >= 3) break
 
-                    // 2. Validate IDs from the Order document
                     val restauranteId = pedidoDoc.getString("idRestaurante")
-                    val donoId = pedidoDoc.getString("donoId") // Make sure your order saving logic saves this!
+                    val donoId = pedidoDoc.getString("donoId")
 
-                    // SAFETY CHECK: If IDs are missing, skip this order to prevent crash
                     if (restauranteId.isNullOrEmpty() || donoId.isNullOrEmpty()) {
                         Log.w("HomeFragment", "Pedido ${pedidoDoc.id} incompleto: restauranteId=$restauranteId, donoId=$donoId")
                         continue
                     }
 
-                    // 3. Fetch items inside this order
                     val itensSnapshot = pedidoDoc.reference.collection("Itens").get().await()
 
                     for (itemDoc in itensSnapshot.documents) {
                         val produtoPedidoInfo = itemDoc.toObject(ProdutoPedido::class.java)
 
                         if (produtoPedidoInfo != null && !idsProdutosAdicionados.contains(produtoPedidoInfo.produtoId)) {
-
-                            // 4. Construct path safely using validated IDs
-                            // Path: operadores/{donoId}/restaurantes/{restauranteId}/produtos/{produtoId}
-                            // NOTE: Ensure collection name matches Firestore (e.g., "produtos" vs "Produto")
 
                             val produtoRef = db.collection("operadores").document(donoId)
                                 .collection("restaurantes").document(restauranteId)
@@ -165,7 +155,6 @@ class HomeFragment : Fragment() {
                                     idRestaurante = restauranteId,
                                     nome = produtoCompletoDoc.getString("nome") ?: "",
                                     precoUnitario = produtoCompletoDoc.getDouble("preco") ?: 0.0,
-                                    // Use 'descricao' if available, otherwise empty string
                                     descricao = produtoCompletoDoc.getString("descricao"),
                                     imageUrl = produtoCompletoDoc.getString("imageUrl")
                                 )
@@ -182,10 +171,6 @@ class HomeFragment : Fragment() {
                 if (isAdded) {
                     if (produtosRecentes.isNotEmpty()) {
                         recentAdapter.updateList(produtosRecentes)
-                        // Make sure you have this TextView in your layout, or remove these lines
-                        // binding.textRecentes.visibility = View.VISIBLE
-                    } else {
-                        // binding.textRecentes.visibility = View.GONE
                     }
                 }
             } catch (e: Exception) {
@@ -234,7 +219,6 @@ class HomeFragment : Fragment() {
 
     private fun setupFilterButtons() {
         binding.btnFavoritos.setOnClickListener {
-            // ...
             val favoritedList = allRestaurants.filter { favoriteRestaurants.contains(it.id) }
             restaurantAdapter.updateList(favoritedList, favoriteRestaurants)
         }

@@ -28,7 +28,7 @@ class CardapioFragment : Fragment() {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
-    // Variáveis para guardar os IDs dinâmicos
+
     private var currentRestauranteId: String = ""
     private var currentDonoId: String = ""
 
@@ -59,8 +59,8 @@ class CardapioFragment : Fragment() {
 
 
         setupRecyclerView()
-        carregarDadosRestaurante() // Agora usa as variáveis dinâmicas
-        carregarCardapio()         // Agora usa as variáveis dinâmicas
+        carregarDadosRestaurante()
+        carregarCardapio()
 
         initListeners()
 
@@ -68,9 +68,6 @@ class CardapioFragment : Fragment() {
 
     private fun initListeners(){
         binding.btnVoltar.setOnClickListener {
-            // Usar popBackStack() é mais idiomático e seguro que navigateUp().
-            // Ele simplesmente remove o fragmento atual (Cardapio) da pilha,
-            // revelando o anterior (Home).
             findNavController().popBackStack()
         }
 
@@ -82,7 +79,6 @@ class CardapioFragment : Fragment() {
 
 
     private fun setupRecyclerView() {
-        // ⚠️ ALTERADO: Passamos a função de NAVEGAR para o adapter
         categoriaAdapter = CategoriaAdapter(listaCategoriasCompletas) { produtoClicado ->
             navegarParaProduto(produtoClicado)
         }
@@ -94,7 +90,6 @@ class CardapioFragment : Fragment() {
         }
     }
 
-    // Em CardapioFragment.kt (apenas a função navegarParaProduto)
 
     private fun navegarParaProduto(produto: ProdutoCardapio) {
         val bundle = Bundle().apply {
@@ -115,17 +110,13 @@ class CardapioFragment : Fragment() {
         }
     }
 
-    // Em CardapioFragment.kt
-
     private fun carregarDadosRestaurante() {
-        // Usando os IDs dinâmicos
         val restauranteDocRef = db.collection("operadores").document(currentDonoId)
             .collection("restaurantes").document(currentRestauranteId)
 
         restauranteDocRef.get()
             .addOnSuccessListener { document ->
 
-                // 🛑 CORREÇÃO: Verificar se o binding ainda é válido
                 if (_binding == null) return@addOnSuccessListener
 
                 if (document.exists()) {
@@ -133,7 +124,6 @@ class CardapioFragment : Fragment() {
                     val descricao = document.getString("descricao")
                     val imageUrl = document.getString("imageUrl")
 
-                    // 🛑 Acesso Seguro ao Binding
                     binding.txtNomeRestaurante.text = nome ?: "Restaurante"
                     binding.txtDescricaoRestaurante.text = descricao
 
@@ -150,7 +140,6 @@ class CardapioFragment : Fragment() {
     }
 
     private fun carregarCardapio() {
-        // Caminho dinâmico baseado no clique
         val BASE_PATH = "operadores/$currentDonoId/restaurantes/$currentRestauranteId"
 
         val pathCategorias = "$BASE_PATH/categorias"
@@ -159,11 +148,6 @@ class CardapioFragment : Fragment() {
         db.collection(pathCategorias).get()
             .addOnSuccessListener { querySnapshot ->
                 listaCategoriasCompletas.clear()
-
-                // Verifica se tem categorias
-                if (querySnapshot.isEmpty) {
-                    // Opcional: Avisar que não tem cardápio
-                }
 
                 for (catDoc in querySnapshot) {
                     val catNome = catDoc.getString("nome") ?: "Categoria"
@@ -175,10 +159,6 @@ class CardapioFragment : Fragment() {
                             val totalProdutosParaBuscar = produtosSnapshot.size()
                             var produtosProcessados = 0
 
-                            if (totalProdutosParaBuscar == 0) {
-                                // Se categoria não tem produtoCardapios, decide se mostra ou não
-                                // organizarEAtualizarLista(...)
-                            }
 
                             for (prodLinkDoc in produtosSnapshot) {
                                 val produtoIdReal = prodLinkDoc.id
@@ -198,7 +178,7 @@ class CardapioFragment : Fragment() {
                                         }
                                     }
                                     .addOnFailureListener {
-                                        produtosProcessados++ // Conta mesmo com erro para não travar
+                                        produtosProcessados++
                                         if (produtosProcessados == totalProdutosParaBuscar) {
                                             organizarEAtualizarLista(Categoria(catDoc.id, catNome, produtosDestaCategoria))
                                         }
@@ -212,16 +192,12 @@ class CardapioFragment : Fragment() {
             }
     }
 
-    // Função auxiliar para evitar concorrência desordenada na UI
-
     private fun organizarEAtualizarLista(novaCategoria: Categoria) {
         listaCategoriasCompletas.add(novaCategoria)
-        // Opcional: Ordenar categorias alfabeticamente ou por ordem específica se tiver campo 'ordem'
-        // listaCategoriasCompletas.sortBy { it.nome }
         categoriaAdapter.notifyDataSetChanged()
     }
 
-    // 3. Adicionar ao Carrinho (Firestore)
+
 
 
     override fun onDestroyView() {

@@ -28,21 +28,18 @@ class PedidosAdapter(
 
         with(holder.binding) {
 
-            // 1. Define o NOME do restaurante ao invés do ID
             restaurante.text = pedido.nomeRestaurante
 
-            // 2. Define a IMAGEM do restaurante usando Glide
             if (pedido.fotoRestaurante.isNotEmpty()) {
                 Glide.with(root.context)
                     .load(pedido.fotoRestaurante)
-                    .centerCrop() // Ou .fitCenter(), dependendo do seu gosto
-                    .placeholder(R.drawable.restaurante_default) // Imagem enquanto carrega
+                    .centerCrop()
+                    .placeholder(R.drawable.restaurante_default)
                     .into(imageButton2)
             } else {
                 imageButton2.setImageResource(R.drawable.restaurante_default)
             }
 
-            // --- LÓGICA DE CORES E STATUS ---
             val corFundoId = if (pedido.status == Status.Ativo) {
                 R.color.pedido_ativo_background
             } else {
@@ -52,10 +49,8 @@ class PedidosAdapter(
             val corFundo = ContextCompat.getColor(root.context, corFundoId)
             cardPedido.setCardBackgroundColor(corFundo)
 
-            // Define a cor de fundo do botão (borda/fundo redondo)
             imageButton2.backgroundTintList = ColorStateList.valueOf(corFundo)
 
-            // --- LÓGICA DE TEXTO DO HORÁRIO ---
             if (pedido.status == Status.Ativo) {
                 textHorario.text = "Horário de compra :"
                 textTime.text = pedido.horarioCompraFormatado
@@ -64,7 +59,6 @@ class PedidosAdapter(
                 textTime.text = pedido.horarioRetiradaFormatado ?: pedido.horarioCompraFormatado
             }
 
-            // --- CONFIGURAÇÃO DA LISTA DE PRODUTOS ---
             if (recyclerProdutos.layoutManager == null) {
                 recyclerProdutos.layoutManager = LinearLayoutManager(root.context)
                 recyclerProdutos.setHasFixedSize(true)

@@ -53,7 +53,6 @@ class PedidosFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
-                // 1. Busca os pedidos do usuário
                 val pedidosSnapshot = db.collection("Usuario")
                     .document(userId)
                     .collection("Pedidos")
@@ -68,21 +67,15 @@ class PedidosFragment : Fragment() {
                     val pedidoId = document.id
                     val dados = document.data
 
-                    // --- LEITURA DOS DADOS BÁSICOS ---
                     val idRestaurante = dados?.get("idRestaurante") as? String ?: ""
-                    // IMPORTANTE: Precisamos do donoId para achar o restaurante no banco
                     val donoId = dados?.get("donoId") as? String ?: ""
                     val precoTotal = dados?.get("precoTotal") as? Double ?: 0.0
 
-                    // --- NOVA LÓGICA: BUSCAR DADOS DO RESTAURANTE ---
                     var nomeRestaurante = "Restaurante Desconhecido"
                     var fotoRestaurante = ""
 
-                    // Verifica se temos os dois IDs necessários para o caminho
                     if (idRestaurante.isNotEmpty() && donoId.isNotEmpty()) {
 
-                        // Caminho corrigido baseado na estrutura do HomeFragment:
-                        // operadores -> {donoId} -> restaurantes -> {idRestaurante}
                         val docRestaurante = db.collection("operadores")
                             .document(donoId)
                             .collection("restaurantes")
@@ -92,12 +85,9 @@ class PedidosFragment : Fragment() {
 
                         if (docRestaurante.exists()) {
                             nomeRestaurante = docRestaurante.getString("nome") ?: "Nome Indisponível"
-                            // Confirme se o campo é 'imageUrl', 'logoUrl' ou 'foto' no seu banco
                             fotoRestaurante = docRestaurante.getString("imageUrl") ?: ""
                         }
                     } else if (idRestaurante.isNotEmpty() && donoId.isEmpty()) {
-                        // FALLBACK: Se o pedido for antigo e não tiver 'donoId',
-                        // tentamos achar o restaurante via CollectionGroup (mais lento, mas funciona)
                         val querySnapshot = db.collectionGroup("restaurantes")
                             .whereEqualTo(com.google.firebase.firestore.FieldPath.documentId(), idRestaurante)
                             .get()
@@ -109,13 +99,10 @@ class PedidosFragment : Fragment() {
                             fotoRestaurante = doc.getString("imageUrl") ?: ""
                         }
                     }
-                    // ------------------------------------------------
 
-                    // LER STATUS
                     val statusString = dados?.get("status") as? String ?: "Ativo"
                     val statusPedido = if (statusString == "Encerrado") Status.Encerrado else Status.Ativo
 
-                    // TRATAR HORÁRIOS
                     val horaCompra = converterIdParaHorario(pedidoId)
                     var horaRetirada: String? = null
                     if (statusPedido == Status.Encerrado) {
@@ -123,7 +110,6 @@ class PedidosFragment : Fragment() {
                         horaRetirada = formatarTimestamp(timestampEncerrado)
                     }
 
-                    // BUSCAR ITENS DO PEDIDO
                     val itensSnapshot = document.reference.collection("Itens").get().await()
                     val produtosList = itensSnapshot.documents.mapNotNull { itemDoc ->
                         itemDoc.toObject(ProdutoPedido::class.java)

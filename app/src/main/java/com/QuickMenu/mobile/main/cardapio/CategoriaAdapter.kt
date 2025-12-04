@@ -25,13 +25,12 @@ class CategoriaAdapter(
         val categoria = categorias[position]
         holder.binding.txtTituloCategoria.text = categoria.nome
 
-        // Configura o adapter interno (Produtos)
         val produtoAdapter = ProdutoAdapter(categoria.produtoCardapios, onAddProdutoClick)
 
         holder.binding.rvProdutos.apply {
             layoutManager = LinearLayoutManager(holder.itemView.context, RecyclerView.VERTICAL, false)
             adapter = produtoAdapter
-            setRecycledViewPool(RecyclerView.RecycledViewPool()) // Otimização
+            setRecycledViewPool(RecyclerView.RecycledViewPool())
         }
     }
 

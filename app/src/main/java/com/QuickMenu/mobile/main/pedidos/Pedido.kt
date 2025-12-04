@@ -1,6 +1,4 @@
 package com.QuickMenu.mobile.main.pedidos
-
-// Adicione os campos novos na sua data class existente
 data class Pedido(
     val id: String,
     val restauranteId: String,

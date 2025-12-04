@@ -9,7 +9,6 @@ import java.text.NumberFormat
 import java.util.Locale
 class ProdutoAdapter(
     private val produtos: List<ProdutoCardapio>,
-    // ⚠️ ALTERADO: Agora é onProdutoClick, não onAddClick
     private val onProdutoClick: (ProdutoCardapio) -> Unit
 ) : RecyclerView.Adapter<ProdutoAdapter.ProdutoViewHolder>() {
 
@@ -38,12 +37,10 @@ class ProdutoAdapter(
                     .into(imgProduto)
             }
 
-            // ⚠️ ALTERADO: O clique agora abre a tela do produto
             btnAdicionar.setOnClickListener {
                 onProdutoClick(produto)
             }
 
-            // Opcional: Se a linha inteira for clicável:
             holder.itemView.setOnClickListener {
                 onProdutoClick(produto)
             }

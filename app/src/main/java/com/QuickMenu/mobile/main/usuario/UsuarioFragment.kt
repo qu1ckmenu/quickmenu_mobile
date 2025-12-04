@@ -43,7 +43,6 @@ class UsuarioFragment : Fragment() {
     private var lastSelectedRestaurantIds = listOf<String>()
     private var currentPhotoUrl: String? = null
 
-    // Contrato para abrir a galeria
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
             uploadImageToImageBB(uri)
@@ -77,72 +76,55 @@ class UsuarioFragment : Fragment() {
         }
     }
 
-    // --- FUNÇÃO PARA EDITAR NOME DE USUÁRIO ---
     private fun showEditUsernameDialog() {
-        // 1. Criar um container para o campo de texto, para podermos adicionar margens
         val container = android.widget.FrameLayout(requireContext())
         val params = android.widget.FrameLayout.LayoutParams(
             android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
             android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
         )
-        // Adiciona margens para que o campo de texto não cole nas bordas do pop-up
         params.leftMargin = 50
         params.rightMargin = 50
 
-        // 2. Criar o campo de texto (EditText)
         val editText = android.widget.EditText(requireContext())
         editText.layoutParams = params
-        // Define o texto inicial como o nome de usuário atual
         editText.setText(binding.nome.text)
-        // Move o cursor para o final do texto
         editText.setSelection(binding.nome.text.length)
 
-        // Adiciona o EditText ao container
         container.addView(editText)
 
-        // 3. Construir e exibir o AlertDialog
         AlertDialog.Builder(requireContext())
             .setTitle("Alterar nome de usuário")
-            .setView(container) // Adiciona o container com o EditText
+            .setView(container)
             .setPositiveButton("Salvar") { dialog, _ ->
-                // Ação para o botão "Salvar"
                 val newUsername = editText.text.toString().trim()
 
                 if (newUsername.isNotEmpty()) {
-                    // Se o nome não estiver vazio, atualiza no banco de dados
                     updateUsernameInFirestore(newUsername)
                 } else {
                     Toast.makeText(requireContext(), "O nome não pode ser vazio", Toast.LENGTH_SHORT).show()
                 }
-                dialog.dismiss() // Fecha o pop-up
+                dialog.dismiss()
             }
-            .setNegativeButton("Cancelar", null) // Botão "Cancelar" não faz nada
+            .setNegativeButton("Cancelar", null)
             .show()
     }
 
-    // --- FUNÇÃO PARA ATUALIZAR O NOME NO BANCO DE DADOS ---
     private fun updateUsernameInFirestore(newUsername: String) {
-        val uid = auth.currentUser?.uid ?: return // Pega o ID do usuário logado
+        val uid = auth.currentUser?.uid ?: return
 
-        // Mostra uma mensagem de "salvando"
         Toast.makeText(requireContext(), "Salvando...", Toast.LENGTH_SHORT).show()
 
         banco.collection("Usuario").document(uid)
-            .update("username", newUsername) // Atualiza apenas o campo "username"
+            .update("username", newUsername)
             .addOnSuccessListener {
-                // Sucesso!
                 Toast.makeText(requireContext(), "Nome atualizado com sucesso!", Toast.LENGTH_SHORT).show()
-                // Atualiza o nome na tela imediatamente
                 binding.nome.text = newUsername
             }
             .addOnFailureListener { e ->
-                // Falha!
                 Toast.makeText(requireContext(), "Erro ao atualizar o nome: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
-
-    //POP-UP
     private fun showOptionsDialog() {
         val options = arrayOf("Visualizar foto", "Alterar foto")
 
@@ -150,22 +132,20 @@ class UsuarioFragment : Fragment() {
         builder.setTitle("Foto de Perfil")
         builder.setItems(options) { _, which ->
             when (which) {
-                0 -> showFullImage() // Visualizar
-                1 -> pickImageLauncher.launch("image/*") // Alterar
+                0 -> showFullImage()
+                1 -> pickImageLauncher.launch("image/*")
             }
         }
         builder.setNegativeButton("Cancelar", null)
         builder.show()
     }
 
-    //VISUALIZAR IMAGEM
     private fun showFullImage() {
         if (currentPhotoUrl.isNullOrEmpty()) {
             Toast.makeText(requireContext(), "Nenhuma foto para visualizar", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // 1. Criar um container (LinearLayout) para dar margem e garantir o layout
         val container = android.widget.LinearLayout(requireContext())
         container.orientation = android.widget.LinearLayout.VERTICAL
         val params = android.widget.LinearLayout.LayoutParams(
@@ -175,29 +155,23 @@ class UsuarioFragment : Fragment() {
         params.setMargins(50, 50, 50, 50) // Margens laterais
         container.layoutParams = params
 
-        // 2. Criar a ImageView
         val imageView = ImageView(requireContext())
 
-        // Define que a imagem deve preencher a largura, mas ajustar a altura
-        imageView.layoutParams = android.view.ViewGroup.LayoutParams(
-            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-            1000 // Altura fixa inicial grande ou WRAP_CONTENT com minHeight
+        imageView.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            1000
         )
 
-        // Configurações visuais
         imageView.scaleType = ImageView.ScaleType.FIT_CENTER
         imageView.adjustViewBounds = true
 
-        // Adiciona a imagem ao container
         container.addView(imageView)
 
-        //Carregar com Glide
         Glide.with(this)
             .load(currentPhotoUrl)
-            .placeholder(com.QuickMenu.mobile.R.drawable.default_profile_picture) // Mostra algo enquanto carrega
+            .placeholder(com.QuickMenu.mobile.R.drawable.default_profile_picture)
             .into(imageView)
 
-        // Exibir o Dialog com o container
         AlertDialog.Builder(requireContext())
             .setTitle("Foto de Perfil")
             .setView(container) // Passa o container, não a imagem direta
@@ -205,7 +179,6 @@ class UsuarioFragment : Fragment() {
             .show()
     }
 
-    // --- UPLOAD PARA IMAGE BB ---
     private fun uploadImageToImageBB(imageUri: Uri) {
         Toast.makeText(requireContext(), "Fazendo upload...", Toast.LENGTH_SHORT).show()
 
@@ -238,7 +211,6 @@ class UsuarioFragment : Fragment() {
                     val json = JSONObject(responseString)
                     val newUrl = json.getJSONObject("data").getString("url")
 
-                    // Voltar para a thread principal para salvar no banco
                     withContext(Dispatchers.Main) {
                         updateFirestore(newUrl)
                     }
@@ -255,7 +227,6 @@ class UsuarioFragment : Fragment() {
         }
     }
 
-    // ATUALIZAR FIRESTORE
     private fun updateFirestore(url: String) {
         val uid = auth.currentUser?.uid ?: return
 
@@ -264,7 +235,6 @@ class UsuarioFragment : Fragment() {
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Foto atualizada com sucesso!", Toast.LENGTH_SHORT).show()
 
-                // Atualiza a interface com a nova URL
                 loadProfileImage(url)
             }
             .addOnFailureListener {
@@ -272,14 +242,11 @@ class UsuarioFragment : Fragment() {
             }
     }
 
-    // CARREGAR DADOS DO BANCO
     private fun loadUserData() {
         val uid = auth.currentUser?.uid ?: return
 
-        // Pega dados simples do Auth
         binding.email.text = auth.currentUser?.email
 
-        //Pega dados do Firestore
         banco.collection("Usuario").document(uid).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
@@ -288,7 +255,6 @@ class UsuarioFragment : Fragment() {
 
                     binding.nome.text = username ?: "Sem nome"
 
-                    // Se tiver URL no banco, carrega. Se não, usa imagem padrão
                     if (!photoUrl.isNullOrEmpty()) {
                         loadProfileImage(photoUrl)
                     }
@@ -299,21 +265,18 @@ class UsuarioFragment : Fragment() {
             }
     }
 
-    // Função auxiliar para carregar a imagem na tela usando Glide
     private fun loadProfileImage(url: String) {
-        currentPhotoUrl = url // Atualiza a variável global para o "Visualizar" usar
+        currentPhotoUrl = url
 
-        try {
-            Glide.with(this)
-                .load(url)
-                .circleCrop() // Corta em círculo
-                .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache inteligente
-                .placeholder(com.QuickMenu.mobile.R.drawable.default_profile_picture) // Enquanto carrega
-                .error(com.QuickMenu.mobile.R.drawable.default_profile_picture) // Se der erro
-                .into(binding.fotoPerfil)
-        } catch (e: Exception) {
-            // Evita crash se a tela já tiver fechado
-        }
+
+        Glide.with(this)
+            .load(url)
+            .circleCrop()
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .placeholder(com.QuickMenu.mobile.R.drawable.default_profile_picture)
+            .error(com.QuickMenu.mobile.R.drawable.default_profile_picture)
+            .into(binding.fotoPerfil)
+
     }
 
     private fun logout() {
@@ -323,10 +286,8 @@ class UsuarioFragment : Fragment() {
     }
 
     private fun loadAndDisplayPriorityRestaurants() {
-        // Carrega as preferências do usuário (favoritos e últimos vistos)
         loadUserPreferences()
 
-        // Busca todos os restaurantes no Firestore
         banco.collectionGroup("restaurantes").get()
             .addOnSuccessListener { result ->
                 if (result.isEmpty) return@addOnSuccessListener
@@ -337,23 +298,18 @@ class UsuarioFragment : Fragment() {
                     allRestaurants.add(restaurante)
                 }
 
-                // Após carregar tudo, aplica a lógica de ordenação e exibe as imagens
                 displayPriorityRestaurants()
             }
-            .addOnFailureListener {
-                // Lida com o erro, se necessário
-            }
+
     }
 
     private fun loadUserPreferences() {
         val prefs = activity?.getSharedPreferences("RestaurantPreferences", Context.MODE_PRIVATE) ?: return
         favoriteRestaurantIds = prefs.getStringSet("favorite_ids", emptySet()) ?: emptySet()
-        // Supondo que você salve os últimos selecionados como uma string de IDs separados por vírgula
         lastSelectedRestaurantIds = prefs.getString("last_selected_ids", "")?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
     }
 
     private fun displayPriorityRestaurants() {
-        // 1. Calcula a pontuação para cada restaurante usando a HIERARQUIA CORRETA
         val scoredRestaurants = allRestaurants.map { restaurant ->
             val isFavorite = favoriteRestaurantIds.contains(restaurant.id)
             val lastSelectedIndex = lastSelectedRestaurantIds.indexOf(restaurant.id)
@@ -361,54 +317,38 @@ class UsuarioFragment : Fragment() {
 
             var score = 0
             if (isFavorite) {
-                // REGRA 1: SE É FAVORITO, A PONTUAÇÃO BASE É ALTA (ex: 1000)
                 score = 1000
 
                 if (isLastSelected) {
-                    // BÔNUS: Se também for recente, ganha um bônus para desempate.
-                    // Quanto mais recente (menor o índice), maior o bônus.
-                    score += (100 - lastSelectedIndex) // Ex: 1100, 1099, 1098...
+                    score += (100 - lastSelectedIndex)
                 }
             } else if (isLastSelected) {
-                // REGRA 2: SE NÃO É FAVORITO, MAS É RECENTE, A PONTUAÇÃO BASE É BEM MENOR (ex: 100)
-                score = 100 - lastSelectedIndex // Ex: 100, 99, 98...
+                score = 100 - lastSelectedIndex
             }
 
-            Pair(restaurant, score) // Retorna o restaurante e sua pontuação final
+            Pair(restaurant, score)
         }
-            // 2. Filtra (mantém apenas quem tem pontuação), ordena pela maior pontuação e mapeia de volta
             .filter { it.second > 0 }
             .sortedByDescending { it.second }
             .map { it.first }
 
-        // 3. Pega os 3 melhores (ou menos, se não houver 3)
         val topRestaurants = scoredRestaurants.take(3)
 
-        // 4. Lista dos ImageViews do seu layout
         val imageViews = listOf(binding.ivRestaurante1, binding.ivRestaurante2, binding.ivRestaurante3)
 
-        // Limpa o estado anterior, escondendo todas as imagens
-/*        imageViews.forEach {
-            it.visibility = View.INVISIBLE
-            it.setOnClickListener(null) // Remove cliques antigos para evitar bugs
-        }*/
 
-        // 5. Popula os ImageViews com as imagens e define os cliques
         topRestaurants.forEachIndexed { index, restaurant ->
             if (index < imageViews.size) {
                 val imageView = imageViews[index]
-                imageView.visibility = View.VISIBLE // Torna a imagem visível
-
+                imageView.visibility = View.VISIBLE
                 Glide.with(this)
                     .load(restaurant.imageUrl)
                     .placeholder(com.QuickMenu.mobile.R.drawable.default_profile_picture)
                     .error(com.QuickMenu.mobile.R.drawable.bolo)
                     .into(imageView)
 
-                // Opcional: Adicionar um clique para levar à tela do restaurante
                 imageView.setOnClickListener {
                     Toast.makeText(context, "Clicou em ${restaurant.nome}", Toast.LENGTH_SHORT).show()
-                    // TODO: Navegar para a tela de detalhes do 'restaurant'
                 }
             }
         }

@@ -4,9 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.navigation.Navigation
-import com.QuickMenu.mobile.R
-import androidx.navigation.findNavController
 import com.QuickMenu.mobile.auth.AuthActivity
 import com.QuickMenu.mobile.databinding.ActivitySplashBinding
 import com.QuickMenu.mobile.main.MainActivity

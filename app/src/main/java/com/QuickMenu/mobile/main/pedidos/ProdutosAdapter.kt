@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.QuickMenu.mobile.R
 import com.QuickMenu.mobile.databinding.ItemProdutoPedidoBinding
-import com.bumptech.glide.Glide // 1. Não esqueça de importar o Glide
+import com.bumptech.glide.Glide
 
 class ProdutosAdapter(
     private val produtoPedidos: List<ProdutoPedido>
@@ -28,16 +28,14 @@ class ProdutosAdapter(
             nomeProduto.text = produto.nome
             quantidadeProduto.text = "${produto.quantidade}x"
 
-            // 2. Lógica do Glide para carregar a imagem do banco
             if (produto.imageUrl.isNotEmpty()) {
                 Glide.with(root.context)
                     .load(produto.imageUrl)
                     .centerCrop()
-                    .placeholder(R.drawable.bolo) // Use sua imagem padrão aqui
-                    .error(R.drawable.bolo)       // Caso a URL quebre
+                    .placeholder(R.drawable.bolo)
+                    .error(R.drawable.bolo)
                     .into(imageProduto)
             } else {
-                // Se não tiver URL salva, mostra a imagem padrão
                 imageProduto.setImageResource(R.drawable.bolo)
             }
         }
